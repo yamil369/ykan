@@ -1,0 +1,1194 @@
+#PROGRAMA DE EDICIÓN Y RELLENADO DE GUIAS PARA UNA EMPRESA DE TRANSPORTE
+
+#EL PROGRAMA RECIBE LOS DATOS DE TRANSPORTE Y LO GUARDA EN LA BASE DE DATOS EXCEL,
+#ADEMÁS PERMITE IMPRIMIR EN CUALQUIER SALIDA LOS DATOS RECIBIDOS
+
+import tkinter as tk
+from tkinter import ttk
+from tkinter.messagebox import *
+from tkcalendar import Calendar,DateEntry
+import pandas as pd                           # PARA EXPORTAR A EXCEL
+from PIL import ImageTk, Image 
+
+import itertools
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas               # PARA IMPORTAR IMAGENES
+
+#*********** PANTALLA *******************************************************************************************************************************************************************************************
+correl_hc=[]
+correl_cliente=[]
+fecha_partida=[]
+fecha_destino=[]
+
+validar=[]
+estado_transporte=[]
+observacion_trasnporte=[]
+precio_lista=[]
+
+direcc_partida=[]
+direcc_destino=[]
+cono_partida=[]
+cono_destino=[]
+distrito_partida=[]
+distrito_destino=[]
+
+remitente_cliente=[]
+destinatario_cliente=[]
+ruc_partida=[]
+ruc_destino=[]
+
+transporte_detalle=[]
+transporte_codigo=[]
+transporte_cantidad=[]
+transporte_peso=[]
+
+placa_real=[]
+unidad_marca_real=[]
+unidad_certificado_real=[]
+unidad_ejes=[]
+
+conductor_nombres=[]
+conductor_licencia=[]
+
+def Pantalla():
+    panta=tk.Tk()
+    panta.title("REGISTRO DE GUIAS")
+    panta.geometry("1250x690+100+0")
+    panta.configure(bg='#000080')
+    
+    # ICONO DE PANTALLA
+    panta.iconbitmap(r'C:\OneDrive - abc\Documentos\A-PRACTICAS_PRE-PROFESIONALES\HC TRANSPORTE Y SERVICIOS SAC\PROGRAMA DE REGISTRO DE DATOS/LOGORecurso-3.ico')
+  
+    # IMAGEN PRIMER ENCABEZADO
+    imagen1=ImageTk.PhotoImage(Image.open(r'C:\OneDrive - abc\Documentos\A-PRACTICAS_PRE-PROFESIONALES\HC TRANSPORTE Y SERVICIOS SAC\PROGRAMA DE REGISTRO DE DATOS/ENCABEZADO SUPERIOR.png'))
+    label1= tk.Label(image=imagen1, bg='#000080')
+    label1.pack(side='top', pady=10)
+    
+    #FRAME 1
+    frame1=tk.Frame(panta).pack(side='left',padx=0,pady=0)
+    
+    #CORRELATIVO DE HC
+    guia_hc=tk.Label(frame1, text='CORRELATIVO HC:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=150)
+    guia_hc1=tk.DoubleVar()
+    guia_hc1=ttk.Entry(frame1,width=18)
+    guia_hc1.place(x=180,y=150)
+    
+    #CORRELATIVO DE CLIENTE
+    guia_cliente=tk.Label(frame1, text='CORRELATIVO CLIENTE:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=383,y=150)
+    guia_cliente_1=tk.DoubleVar()
+    guia_cliente_1=ttk.Entry(frame1,width=18)
+    guia_cliente_1.place(x=550,y=150)
+    
+    #FECHA 1 DE TRASLADO 
+    fecha1=tk.Label(frame1, text='FECHA DE TRASLADO:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=180)
+    fecha_1=DateEntry(frame1,date_pattern='dd/mm/yyyy',width=15,bg='#000080',fg='blue')       #ORDEN DE FECHAS DD/MM/AA
+    fecha_1.place(x=180,y=180)
+    
+    #FECHA 2 DE EMISION
+    fecha2=tk.Label(frame1, text='FECHA DE EMISION:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=410,y=180)
+    fecha_2= DateEntry(frame1,date_pattern='dd/mm/yyyy', width=15,bd='darkblue',fd='white')   #ORDEN DE FECHAS DD/MM/AA
+    fecha_2.place(x=550,y=180)
+    
+    #LUGAR DE PARTIDA Y LLEGADA
+    
+    zonaNorte=  ['ANCON','CARABAYLLO','COMAS','INDEPENDENCIA','LOS OLIVOS',
+                             'PUENTE PIEDRA','SMP','SANTA ROSA']
+    
+    zonaCentro= ['CERCADO DE LIMA','RÍMAC','LA VICTORIA','SAN LUIS',
+                                     'BREÑA','PUEBLO LIBRE','SAN MIGUEL','MAGDALENA DEL MAR',
+                                     'JESÚS MARIA','SURQUILLO','LINCE','SANTIAGO DE SURCO',
+                                     'SAN ISIDRO','MIRAFLORES','SAN BORJA','BARRANCO']
+    
+    zonaEste=   ['ATE', 'CHACLACAYO','CIENEGUILLA','EL AGUSTINO',
+                                     'LA MOLINA','LURIG-CHOSICA/HUACHIPA','SAN JUAN DE LURIGANCHO','SANTA ANITA']
+    
+    zonaSur=    ['CHORRILLOS','LURÍN','PACHACAMAC','PUCUSANA','CHILCA','PUNTA HERMOSA','PUNTA NEGRA',
+                 'SAN BARTOLO','SJM','SANTA MARÍA DEL MAR','VILLA EL SALVADOR','VILLA MARÍA DEL TRIUNFO']
+    
+    zonaCallao= ['CALLAO','LA PERLA','LA PUNTA ','BELLA VISTA','VENTANILLA','CARMEN DE LA LEGUA']                    
+                                     
+    zonaProv=   ['PIURA','TUMBES','TRUJILLO','CAJAMARCA','HUARAZ','CHIMBOTE','HUARAL','LA OROYA','PUCUSANA',
+                 'CAÑETE','CHINCHA','PISCO','PARACAS','ICA','NAZCA','AREQUIPA','PUNO']
+    
+#---PARTIDA-------------------------------------------------------------------------------------------
+    
+    hc_place=["AV. MATERIALES 2965 URB INDUSTRIAL WIESSE",'LOCAL PRINCIPAL AV. MESTOR GAMBETA KM 14.5',
+              'ALMACEN INDUSTRIAL LURIN AV LOS EUCALIPTOS LT A1 - LURIN',
+              'CALL LAS MAGNOLIAS MZ G1 LT 12 150132',
+              'PLANTA MONDELES AV VENEZUELA 2470 CERCADO DE LIMA',
+              'PLANTA DE ACEROS AREQUIPA PISCO - CARR PANAMERICANA SUR KM 240',
+              'PANIFICADORA BIMBO JR JORGE CHAVEZ 860 CARMEN DE LA LEGUA']   
+    
+    partida=tk.Label(frame1, text='LUGAR DE PARTIDA:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=210)
+    partida_1=tk.StringVar()
+    partida_11=ttk.Combobox(frame1,width=77, textvariable= partida_1)
+    partida_11['values']=(list(hc_place))
+    partida_11.place(x=180,y=210)
+    
+    #ESTADO GUIA VALIUDADO O ANULADO
+    estado=tk.Label(frame1, text='ESTADO GUIA:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=947,y=137)
+    estado_guia=tk.StringVar()
+    estado_guia1=ttk.Combobox(frame1,width=12, textvariable= estado_guia)
+    estado_guia1['values']=('VALIDADO', 'ANULADO')
+    estado_guia1.place(x=950,y=160)
+    
+    #HORARIO DE TRASLADO
+    horario=tk.Label(frame1, text='HORARIO:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=1060,y=137)
+    tipo_transporte=tk.StringVar()
+    tipo_transporte_1=ttk.Combobox(frame1,width=12, textvariable= tipo_transporte)
+    tipo_transporte_1['values']=('NORMAL','PROVINCIA','NOCTURNO','MADRUGADA','DOMINGO','FERIADO')
+    tipo_transporte_1.place(x=1062,y=160)
+    
+    #OBSERVACIÓN
+    obs=tk.Label(frame1, text='OBSERVACION:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=700,y=270)
+    observacion_001=tk.DoubleVar()
+    observacion_1=ttk.Entry(frame1,width=80, textvariable= observacion_001)
+    observacion_1.place(x=705,y=290)
+    observacion_1.delete(0,'end')
+    
+    #PRECIO DEL TRANSPORTE
+    precio_letra=tk.Label(frame1, text='PRECIO:      S/',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=700,y=320)
+    
+    precio=tk.DoubleVar()
+    precio_1=ttk.Entry(frame1,width=20, textvariable= precio)
+    precio_1.place(x=800,y=320)
+    precio_1.delete(0,'end')
+    
+    # ESCOGER CONO
+    cono_1=tk.Label(frame1, text='CONO/PROV :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=700,y=210)
+    
+    cono_11=tk.StringVar()
+    tipo_cono1=ttk.Combobox(frame1,width=10, textvariable= cono_11)
+    tipo_cono1['values']=('CALLAO','NORTE','CENTRO','ESTE','SUR','PROVINCIA')
+    tipo_cono1.place(x=800,y=210)
+    
+    
+        # ELEGIR DISTRITO POR CONO
+    distrito_Salida=tk.StringVar()
+    distrito_Salida_1=ttk.Combobox(frame1,width=24, textvariable= distrito_Salida)
+   
+    distrito_Salida_1.place(x=1030,y=210)
+    
+    def tipoDistrito():
+        if tipo_cono1.get()=='NORTE':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaNorte))
+            
+            
+        elif tipo_cono1.get()=='CENTRO':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaCentro))
+            
+        elif tipo_cono1.get()=='ESTE':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaEste))
+          
+        elif tipo_cono1.get()=='CALLAO':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaCallao))
+        
+        elif tipo_cono1.get()=='SUR':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaSur))
+            
+        elif tipo_cono1.get()=='PROVINCIA':
+            distrito_Salida_1.delete(0,'end')
+            distrito_Salida_1['values']=(list(zonaProv))
+            
+    # BOTON DE ELECIÓN DISTRITO
+    boton1=tk.Button(frame1, text='DISTRITO/REG :',fg='white' ,bg='#000080',
+                           font = ("Arial", 10, 'bold'),width=14,command= tipoDistrito)
+    boton1.place(x=900,y=207)
+  
+    
+#---LLEGADA-------------------------------------------------------------------------------------------
+    llegada=tk.Label(frame1, text='LUGAR DE LLEGADA:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=240)
+   
+    llegada_1=tk.StringVar()
+    llegada_11=ttk.Combobox(frame1,width=77, textvariable= llegada_1)
+    llegada_11['values']=(list(hc_place))
+    llegada_11.place(x=180,y=240)
+   
+     # ESCOGER CONO
+    cono2=tk.Label(frame1, text='CONO/PROV :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=700,y=240)
+    
+    cono_22=tk.StringVar()
+    tipo_cono2=ttk.Combobox(frame1,width=10, textvariable= cono_22)
+    tipo_cono2['values']=('CALLAO','NORTE','CENTRO','ESTE','SUR','PROVINCIA')
+    tipo_cono2.place(x=800,y=240)
+  
+
+        # ELEGIR DISTRITO POR CONO
+    distr_Lleg=tk.StringVar()
+    distr_Lleg_1=ttk.Combobox(frame1,width=24, textvariable= distr_Lleg)
+    distr_Lleg_1.place(x=1030,y=240)
+            
+    def tipoDistrito2():
+        if tipo_cono2.get()=='NORTE':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaNorte))
+        
+        elif tipo_cono2.get()=='CENTRO':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaCentro))
+            
+        elif tipo_cono2.get()=='ESTE':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaEste))
+            
+        elif tipo_cono2.get()=='SUR':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaSur))
+            
+        elif tipo_cono2.get()=='CALLAO':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaCallao))
+        
+        elif tipo_cono2.get()=='PROVINCIA':
+            distr_Lleg_1.delete(0,'end')
+            distr_Lleg_1['values']=(list(zonaProv))
+            
+    # BOTON DE ELECIÓN DISTRITO
+    boton2=tk.Button(frame1, text='DISTRITO/REG :',fg='white' ,bg='#000080',
+                           font = ("Arial", 10, 'bold'),width=14,command= tipoDistrito2)
+    boton2.place(x=900,y=237)
+    
+#-----------------------------------------------------------------------------------------------------
+    
+    # REMITENTE
+    
+    cliente_01=['HC TRANSPORTES Y SERVICIOS SAC','GAM ALQUILER PERU SAC','IDELCOM SAC','ALO GROUP PERU SAC','BRAHMCO DISEÑOS Y CONSTRUCION SAC',
+                'BRAHMCO CONTRATISTAS SAC', 'PREFABRICADOS ANDINOS PERU SAC',
+                                   'CN MINERIA Y CONSTRUCCION','FAST ENGENHARIA E MONTAGENS SA','METALMECAN EIRL',
+                                   'GLOBAL MACHINERY RENTAL COORPORATION SAC','GOTICA DISEÑOS Y PROYECTOS SAC',
+                                   'H Y G INGENIERIA Y EQUIPOS MECANICOS','J Y W CIA SA',
+                                   'SUMINISTROS FERMAR SAC','BK MODULAR SAC',
+                                   'POSADA PERU SAC','RD SISTEMAS INTEGRALES SAC',
+                                   'RENTA GROUP PERU SAC','COMEDSA INGENIERIA Y CONSTRUCCION SAC',
+                                   'TECPORT PERU SAC','TRANSDILLGRU SRL',
+                                   'TRANSPORTE QUENTA SOCIEDAD','TRANSPORTE VERTICAL INGENIERIA Y SERVICIOS',
+                                  'STEELSER SOCIEDAD ANONIMA CERRADA','PROTECLINE SAC','MOTA ENGIL PERU SA']
+    
+    remitente=tk.Label(frame1, text='REMITENTE:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=280)
+    remitente_1=tk.StringVar()
+    remitente_11=ttk.Combobox(frame1,width=40,textvariable= remitente_1)
+    remitente_11['values']=(list(cliente_01))
+    remitente_11.place(x=180,y=280)
+    
+    #RUC DE REMITENTE
+    ruc_1=tk.DoubleVar()
+    ruc_1 =ttk.Entry(frame1,width=15)
+    
+    ruc_1.place(x=550,y=280)
+         
+    def num_ruc_remitente():
+        if remitente_11.get()=='GAM ALQUILER PERU SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20522731537")
+        elif remitente_11.get()=='GLOBAL MACHINERY RENTAL COORPORATION SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20537219077") 
+        elif remitente_11.get()=='COMEDSA INGENIERIA Y CONSTRUCCION SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20600448367") 
+        elif remitente_11.get()=='FAST ENGENHARIA E MONTAGENS SA':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20602003346") 
+        elif remitente_11.get()=='IDELCOM SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20538501469") 
+        elif remitente_11.get()=='MOTA ENGIL PERU SA':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20100045517") 
+        elif remitente_11.get()=='BRAHMCO DISEÑOS Y CONSTRUCION SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20548099481") 
+        elif remitente_11.get()=='FAST ENGENHARIA E MONTAGENS SA':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20602003346") 
+        elif remitente_11.get()=='POSADA PERU SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20482744983") 
+        elif remitente_11.get()=='RD SISTEMAS INTEGRALES SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20521854597")
+        elif remitente_11.get()=='METALMECAN EIRL':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20563071681")
+        elif remitente_11.get()=='ALO GROUP PERU SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20515728860")
+        elif remitente_11.get()=='SUMINISTROS FERMAR SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20127171212")             
+        elif remitente_11.get()=='BK MODULAR SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20603315201")
+        elif remitente_11.get()=='HC TRANSPORTES Y SERVICIOS SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20601758823") 
+        elif remitente_11.get()=='BRAHMCO CONTRATISTAS SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20609132079")    
+        elif remitente_11.get()=='PREFABRICADOS ANDINOS PERU SAC':
+            ruc_1.delete(0,'end')
+            ruc_1.insert(0, "20518153278") 
+            
+         
+        else:
+            ruc_1.delete(0,'end')
+            
+     # BOTON DE RUC
+    boton13=tk.Button(frame1,text='RUC:',fg='white',bg='#000080',
+                           font=("Arial",10,'bold'),width=10,command=num_ruc_remitente)
+    boton13.place(x=455,y=275)
+    
+     # DESTINATARIO
+    destinatario=tk.Label(frame1, text='DESTINATARIO:',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=20,y=310)
+    destinatario1=tk.StringVar()
+    destinatario11=ttk.Combobox(frame1,width=40,textvariable= destinatario1)
+    destinatario11['values']= (list(cliente_01))
+    destinatario11.place(x=180,y=310)
+    
+    #RUC DE DESTINATARIO
+    ruc_2=tk.DoubleVar()
+    ruc_2 =ttk.Entry(frame1,width=15)
+    
+    ruc_2.place(x=550,y=308)
+    
+    def num_ruc2():
+        if destinatario11.get()=='GAM ALQUILER PERU SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20522731537")
+        elif destinatario11.get()=='GLOBAL MACHINERY RENTAL COORPORATION SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20537219077") 
+        elif destinatario11.get()=='COMEDSA INGENIERIA Y CONSTRUCCION SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20600448367")
+        elif destinatario11.get()=='FAST ENGENHARIA E MONTAGENS SA':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20602003346") 
+        elif destinatario11.get()=='IDELCOM SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20538501469")  
+        elif destinatario11.get()=='MOTA ENGIL PERU SA':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20100045517")  
+        elif destinatario11.get()=='BRAHMCO DISEÑOS Y CONSTRUCION SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20548099481")    
+        elif destinatario11.get()=='FAST ENGENHARIA E MONTAGENS SA':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20602003346")    
+        elif destinatario11.get()=='POSADA PERU SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20482744983") 
+        elif destinatario11.get()=='RD SISTEMAS INTEGRALES SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20521854597")    
+        elif destinatario11.get()=='METALMECAN EIRL':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20563071681")
+        elif destinatario11.get()=='ALO GROUP PERU SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20515728860")   
+        elif destinatario11.get()=='SUMINISTROS FERMAR SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20127171212")    
+        elif destinatario11.get()=='BK MODULAR SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20603315201")
+        elif destinatario11.get()=='HC TRANSPORTES Y SERVICIOS SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20601758823") 
+        elif destinatario11.get()=='BRAHMCO CONTRATISTAS SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20609132079")
+        elif destinatario11.get()=='PREFABRICADOS ANDINOS PERU SAC':
+            ruc_2.delete(0,'end')
+            ruc_2.insert(0, "20518153278")    
+            
+    
+        else:
+            ruc_2.delete(0,'end')
+        
+    # BOTON DE RUC
+    boton4=tk.Button(frame1, text='RUC:',fg='white' ,bg='#000080',
+                           font = ("Arial", 10, 'bold'),width=10,command= num_ruc2)
+    boton4.place(x=455,y=305)
+    
+#-----------------------------------------------------------------------------------------------------
+
+#SERVICIO DE TRANSPORTE
+    
+    #ENTRADA DE TEXTO DE SERVICIO DE TRANSPORTE
+    transporte_titulo=tk.Label(frame1, text='SERVICIO DE TRANSPORTE',
+                  fg='white', bg='#000080', font=('Arial', 12,'bold')).place(x=20,y=350)  
+    # 7 REGLONES DE GUIA TRANSPORTISTA
+    transp_1=tk.DoubleVar()
+    transp_1=ttk.Entry(frame1,width=100)
+    transp_1.place(x=25,y=380)
+    transp_2=tk.DoubleVar()
+    transp_2=ttk.Entry(frame1,width=100)
+    transp_2.place(x=25,y=400)
+    transp_3=tk.DoubleVar()
+    transp_3=ttk.Entry(frame1,width=100)
+    transp_3.place(x=25,y=420)
+    transp_4=tk.DoubleVar()
+    transp_4=ttk.Entry(frame1,width=100)
+    transp_4.place(x=25,y=440)
+    transp_5=tk.DoubleVar()
+    transp_5=ttk.Entry(frame1,width=100)
+    transp_5.place(x=25,y=460)
+    transp_6=tk.DoubleVar()
+    transp_6=ttk.Entry(frame1,width=100)
+    transp_6.place(x=25,y=480)
+    transp_7=tk.DoubleVar()
+    transp_7=ttk.Entry(frame1,width=100)
+    transp_7.place(x=25,y=500)
+
+    #ENTRADA DE TEXTO CODIGO
+    codigo_elegido =tk.Label(frame1, text='CÓDIGO',
+                  fg='white', bg='#000080', font=('Arial', 10)).place(x=700,y=350)
+    codigo_1=tk.DoubleVar()
+    codigo_1=ttk.Entry(frame1,width=12)
+    codigo_1.place(x=700,y=380)
+    
+    codigo_2=tk.DoubleVar()
+    codigo_2=ttk.Entry(frame1,width=12)
+    codigo_2.place(x=700,y=400)
+    
+    codigo_3=tk.DoubleVar()
+    codigo_3=ttk.Entry(frame1,width=12)
+    codigo_3.place(x=700,y=420)
+    
+    codigo_4=tk.DoubleVar()
+    codigo_4=ttk.Entry(frame1,width=12)
+    codigo_4.place(x=700,y=440)
+    
+    codigo_5=tk.DoubleVar()
+    codigo_5=ttk.Entry(frame1,width=12)
+    codigo_5.place(x=700,y=460)
+    
+    codigo_6=tk.DoubleVar()
+    codigo_6=ttk.Entry(frame1,width=12)
+    codigo_6.place(x=700,y=480)
+    
+    codigo_7=tk.DoubleVar()
+    codigo_7=ttk.Entry(frame1,width=12)
+    codigo_7.place(x=700,y=500)
+    
+    #ENTRADA DE TEXTO CANTIDAD
+    cantidad=tk.Label(frame1, text='CANTIDAD',
+                  fg='white', bg='#000080', font=('Arial', 10)).place(x=800,y=350)
+    cantidad_1=tk.DoubleVar()
+    cantidad_1=ttk.Entry(frame1,width=12)
+    cantidad_1.place(x=800,y=380)
+    
+    cantidad_2=tk.DoubleVar()
+    cantidad_2=ttk.Entry(frame1,width=12)
+    cantidad_2.place(x=800,y=400)
+    
+    cantidad_3=tk.DoubleVar()
+    cantidad_3=ttk.Entry(frame1,width=12)
+    cantidad_3.place(x=800,y=420)
+    
+    cantidad_4=tk.DoubleVar()
+    cantidad_4=ttk.Entry(frame1,width=12)
+    cantidad_4.place(x=800,y=440)
+    
+    cantidad_5=tk.DoubleVar()
+    cantidad_5=ttk.Entry(frame1,width=12)
+    cantidad_5.place(x=800,y=460)
+    
+    cantidad_6=tk.DoubleVar()
+    cantidad_6=ttk.Entry(frame1,width=12)
+    cantidad_6.place(x=800,y=480)
+    
+    cantidad_7=tk.DoubleVar()
+    cantidad_7=ttk.Entry(frame1,width=12)
+    cantidad_7.place(x=800,y=500)
+    
+    
+    #ENTRADA DE TEXTO PESO
+    peso=tk.Label(frame1, text='PESO (TN)',
+                  fg='white', bg='#000080', font=('Arial', 10)).place(x=900,y=350)
+   
+    peso_1=tk.DoubleVar()
+    peso_1=ttk.Entry(frame1,width=12)
+    peso_1.place(x=900,y=380)
+    
+    peso_2=tk.DoubleVar()
+    peso_2=ttk.Entry(frame1,width=12)
+    peso_2.place(x=900,y=400)
+    
+    peso_3=tk.DoubleVar()
+    peso_3=ttk.Entry(frame1,width=12)
+    peso_3.place(x=900,y=420)
+    
+    peso_4=tk.DoubleVar()
+    peso_4=ttk.Entry(frame1,width=12)
+    peso_4.place(x=900,y=440)
+    
+    peso_5=tk.DoubleVar()
+    peso_5=ttk.Entry(frame1,width=12)
+    peso_5.place(x=900,y=460)
+    
+    peso_6=tk.DoubleVar()
+    peso_6=ttk.Entry(frame1,width=12)
+    peso_6.place(x=900,y=480)
+    
+    peso_7=tk.DoubleVar()
+    peso_7=ttk.Entry(frame1,width=12)
+    peso_7.place(x=900,y=500)
+    
+#---------------------------------------------------------------------------------------------------------
+    #FRAME 1
+    frame2=tk.Frame(panta).pack(side='left',padx=0,pady=500)    
+
+#DATOS DE VEHÍCULO Y CONDUCTOR
+
+    vehiculo=tk.Label(frame2, text='DATOS DE VEHÍCULO Y CONDUCTOR',
+                  fg='white', bg='#000080', font=('Arial', 12,'bold')).place(x=20,y=525)
+    
+    #ETIQUETAS 
+    
+    #VEHÍCULO
+    nom_tipo_boton=tk.Label(frame2, text='Presione en la conbinación ideal',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'italic')).place(x=37,y=545)
+    nom_placa=tk.Label(frame2, text='Eliga la Placa',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'italic')).place(x=325,y=546)
+    nom_unidad=tk.Label(frame2, text='Unidad',
+                  fg='white' ,bg='#000080', font=('Arial', 11,'italic')).place(x=700,y=545)
+    nom_unidad=tk.Label(frame2, text='Carreta',
+                  fg='white' ,bg='#000080', font=('Arial', 11,'italic')).place(x=800,y=545)
+    #-------------------
+    tipo_unidad=tk.Label(frame2, text='TIPO\nVEHÍCULO',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=30,y=580)
+    placa_unidad_1=tk.Label(frame2, text='UNIDAD    :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=240,y=570)
+    placa_unidad_2=tk.Label(frame2, text='CARRETA :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=240,y=600)
+    marca_unidad=tk.Label(frame2, text='MARCA           :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=570,y=570)
+    certif_unidad=tk.Label(frame2, text='CERTIFICADO :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=570,y=600)
+    ejes_unidad=tk.Label(frame2, text='EJES',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=927,y=545)
+    #LISTA 
+     
+    placas_planchon=['T1W-837','Z1U-884','C9V-750']
+    placas_tractos=['T6B-803','V5R-843','V6N-884','C7J-948','AEM-854']
+    carretas=['ABP-989','C1G-971','ANV-976','C3P-983','D6H-985']
+    
+    #PLANCHON
+    placa_1=tk.StringVar()
+    placa_11=ttk.Combobox(frame2,width=15, textvariable= placa_1)
+    
+    placa_11.place(x=320,y=570)    
+
+    def placa_unidad_planchon():
+        boton6["fg"]="white"
+        boton6["bg"]="#000080"
+        
+        boton5["fg"]="green"
+        boton5["bg"]="light blue"
+        
+        placa_11.delete(0,'end')
+        placa_12.delete(0,'end')
+        placa_11['values']=(list(placas_planchon))
+        placa_12['values']=('')
+        
+    
+    #TRACTO 
+    placa_1=tk.StringVar()
+    placa_11=ttk.Combobox(frame2,width=15, textvariable= placa_1)
+    
+    placa_11.place(x=320,y=570)
+    
+    #CARRETA
+    placa_2=tk.StringVar()
+    placa_12=ttk.Combobox(frame2,width=15, textvariable= placa_2)
+    
+    placa_12.place(x=320,y=600)     
+
+    def placa_unidad_tracto():
+    
+        boton5["fg"]="white"
+        boton5["bg"]="#000080"
+        
+        boton6["fg"]="green"
+        boton6["bg"]="light blue"
+        
+        #-----TRACTO------
+        placa_11.delete(0,'end')
+        placa_11['values']=(list(placas_tractos))
+      
+        #-----CARRETA------
+        
+        placa_12.delete(0,'end')
+        placa_12['values']=(list(carretas))
+        
+    
+    #CONDUCTOR
+    lis_conductor=['MATOS WILLIAN','ERAZO DENNIS','VALLES RICARDO','CABANA ABRAHAM','HERBACH EDGARD']
+    
+    conductor=tk.Label(frame2, text='CONDUCTOR',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=30,y=640)
+    licencia=tk.Label(frame2, text='LICENCIA        :',
+                  fg='white' ,bg='#000080', font=('Arial', 10,'bold')).place(x=570,y=640)
+    
+    conductor_1=tk.StringVar()
+    conductor_11=ttk.Combobox(frame2,width=18, textvariable= conductor_1)
+    conductor_11['values']=(list(lis_conductor))
+    conductor_11.place(x=140,y=640)
+    
+    #BOTONES:
+        
+    #PLACA DE PLANCHON Y TRACTO
+    boton5=tk.Button(frame2, text='PLANCHON',fg='white' ,bg='#000080',font = ("Arial",10, 'bold'),
+                     width=10,command= placa_unidad_planchon)
+    boton5.place(x=140,y=570)
+    
+    boton6=tk.Button(frame2, text='TRAC/CARR',fg='white' ,bg='#000080',font = ("Arial",10, 'bold'),
+                     width=10,command= placa_unidad_tracto)
+    boton6.place(x=140,y=600)
+
+    #MARCAS
+    
+    marca_unidad=tk.DoubleVar()
+    marca_unidad=ttk.Entry(frame2,width=15)
+    marca_unidad.place(x=700,y=570)
+
+    marca_carreta=tk.DoubleVar()
+    marca_carreta=ttk.Entry(frame2,width=15)
+    marca_carreta.place(x=800,y=570) 
+    
+    def marca_planchon_tracto():
+        #PLANCHONES
+        if placa_11.get()=='T1W-837':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'MERCEDES BENZ') 
+        elif placa_11.get()=='Z1U-884':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'MERCEDES BENZ')
+        elif placa_11.get()=='C9V-750':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'HYUNDAY')
+     
+        #TRACTOS
+        elif placa_11.get()=='T6B-803':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'FREIGTLINER')
+        elif placa_11.get()=='V5R-843':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'FREIGTLINER')
+        elif placa_11.get()=='V6N-884':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'VOLVO')
+        elif placa_11.get()=='C7J-948':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'ISUZU')
+        elif placa_11.get()=='AEM-854':
+            marca_unidad.delete(0,'end')
+            marca_unidad.insert(0,'FOTON')
+        else:
+            marca_unidad.delete(0,'end')
+            
+        #CARRETAS
+    def marca_carretas():
+        if placa_12.get()=='C3P-983':
+            marca_carreta.delete(0,'end')
+            marca_carreta.insert(0,'RAJUNSA')
+        elif placa_12.get()=='ANV-976':
+            marca_carreta.delete(0,'end')
+            marca_carreta.insert(0,'RAJUNSA')
+        elif placa_12.get()=='ABP-989':
+            marca_carreta.delete(0,'end')
+            marca_carreta.insert(0,'RAJUNSA')
+        elif placa_12.get()=='C1G-971':
+            marca_carreta.delete(0,'end')
+            marca_carreta.insert(0,'RAJUNSA') 
+        elif placa_12.get()=='D6H-985':
+            marca_carreta.delete(0,'end')
+            marca_carreta.insert(0,'LIM')
+        else:
+            marca_carreta.delete(0,'end')
+    
+    #CERTIFICACIONES 
+    
+    certif_1=tk.DoubleVar()
+    certif_1=ttk.Entry(frame2,width=15)
+    certif_1.place(x=700,y=600) 
+    
+    certif_2=tk.DoubleVar()
+    certif_2=ttk.Entry(frame2,width=15)
+    certif_2.place(x=800,y=600) 
+    
+    def certificado_planchon_tracto():
+        
+        #PLANCHONES
+        if placa_11.get()=='T1W-837':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151918708') 
+        elif placa_11.get()=='Z1U-884':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151815286')
+        elif placa_11.get()=='C9V-750':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'152108710')
+     
+        #TRACTOS
+        elif placa_11.get()=='T6B-803':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151721748')
+        elif placa_11.get()=='V5R-843':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151913593')
+        elif placa_11.get()=='V6N-884':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151700407')
+        elif placa_11.get()=='C7J-948':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'151700404')
+        elif placa_11.get()=='AEM-854':
+            certif_1.delete(0,'end')
+            certif_1.insert(0,'15M21016596E')
+        else:
+            certif_1.delete(0,'end')    
+ 
+        #CARRETAS
+    def certificado_carretas():
+        if placa_12.get()=='C3P-983':
+            certif_2.delete(0,'end')
+            certif_2.insert(0,'151700405')
+        elif placa_12.get()=='ANV-976':
+            certif_2.delete(0,'end')
+            certif_2.insert(0,'151928437')
+        elif placa_12.get()=='ABP-989':
+            certif_2.delete(0,'end')
+            certif_2.insert(0,'151925530')
+        elif placa_12.get()=='C1G-971':
+            certif_2.delete(0,'end')
+            certif_2.insert(0,'151820435') 
+        elif placa_12.get()=='D6H-985':
+            certif_2.delete(0,'end')
+            certif_2.insert(0,'151702720')
+        else:
+            certif_2.delete(0,'end')
+   
+   #EJES TRACTO Y CARRETA
+    
+    ejes_tc_1=tk.DoubleVar()
+    ejes_tc_1=ttk.Entry(frame2,width=3)
+    ejes_tc_1.place(x=930,y=570)
+    
+    ejes_tc_2=tk.DoubleVar()
+    ejes_tc_2=ttk.Entry(frame2,width=3)
+    ejes_tc_2.place(x=955,y=570)
+    
+    def ejes_planchon_tracto():
+        #PLANCHONES
+        if placa_11.get()=='T1W-837' or placa_11.get()=='Z1U-884':
+            ejes_tc_1.delete(0,'end')
+            ejes_tc_1.insert(0,'C3')
+        elif placa_11.get()=='C9V-750':
+            ejes_tc_1.delete(0,'end')
+            ejes_tc_1.insert(0,'C2')
+        
+        #TRACTOS
+        elif placa_11.get()=='T6B-803' or placa_11.get()=='V5R-843' or placa_11.get()=='V6N-884' or placa_11.get()=='C7J-948':
+            ejes_tc_1.delete(0,'end')
+            ejes_tc_1.insert(0,'T3')
+        elif placa_11.get()=='AEM-854':
+            ejes_tc_1.delete(0,'end')
+            ejes_tc_1.insert(0,'T2')
+        
+        else:
+            ejes_tc_1.delete(0,'end')
+         
+    def ejes_carretas():
+        #CARRETAS
+        if placa_12.get()=='D6H-985' or placa_12.get()=='C3P-983':
+            ejes_tc_2.delete(0,'end')
+            ejes_tc_2.insert(0,'S3')
+        elif placa_12.get()=='ANV-976' or placa_12.get()=='C1G-971':
+            ejes_tc_2.delete(0,'end')
+            ejes_tc_2.insert(0,'S2')
+        elif placa_12.get()=='ABP-989':
+            ejes_tc_2.delete(0,'end')
+            ejes_tc_2.insert(0,'S1')
+        
+        else:
+            ejes_tc_2.delete(0,'end')
+
+            
+    #LICENCIAS
+    
+    lic_cond=tk.DoubleVar()
+    lic_cond =ttk.Entry(frame2,width=15)
+    lic_cond.place(x=700,y=640)
+    
+    def licencia_conductor():
+        if conductor_11.get()=='MATOS WILLIAN':
+            lic_cond.delete(0,'end')
+            lic_cond.insert(0,'Q42929394')
+        elif conductor_11.get()=='ERAZO DENNIS':
+            lic_cond.delete(0,'end')
+            lic_cond.insert(0,'Q45291518')
+        elif conductor_11.get()=='VALLES RICARDO':
+            lic_cond.delete(0,'end')
+            lic_cond.insert(0,'Q05349626')
+        elif conductor_11.get()=='CABANA ABRAHAM':
+            lic_cond.delete(0,'end')
+            lic_cond.insert(0,'Q44222263')
+        elif conductor_11.get()=='HERBACH EDGARD':
+            lic_cond.delete(0,'end')
+            lic_cond.insert(0,'Q41419235')
+        else:
+            lic_cond.delete(0,'end')
+
+    
+    #BOTON DATOS
+    boton7=tk.Button(frame2, text='DATOS',fg='white' ,bg='#0000CD',font = ("Arial", 11, 'bold'),
+                           width=6, height=5,command= lambda:[marca_planchon_tracto(),
+                                                             marca_carretas(),
+                                                              certificado_planchon_tracto(),
+                                                              certificado_carretas(),
+                                                              ejes_planchon_tracto(),
+                                                              ejes_carretas(),
+                                                              licencia_conductor()
+                                                              ])
+    boton7.place(x=450,y=560)
+    
+#******** BOTONES EXTERNOS ****************************************************************************************************
+
+    #FRAME 3
+    frame3=tk.Frame(panta).pack(side='left',padx=0,pady=300) 
+    
+#---- TOMAR DATOS ------------------
+    
+    def tomar_datos():
+        correl_hc.insert(0,guia_hc1.get())
+        correl_cliente.insert(0,guia_cliente_1.get())
+        validar.insert(0,estado_guia1.get())
+        estado_transporte.insert(0,tipo_transporte_1.get())
+        observacion_trasnporte.insert(0,observacion_1.get())
+        precio_lista.insert(0, precio_1.get())
+        fecha_partida.insert(0,fecha_1.get())
+        fecha_destino.insert(0,fecha_2.get())
+        
+        direcc_partida.insert(0,partida_11.get())
+        direcc_destino.insert(0,llegada_11.get())
+        cono_partida.insert(0,tipo_cono1.get())
+        cono_destino.insert(0,tipo_cono2.get())
+        distrito_partida.insert(0,distrito_Salida_1.get())
+        distrito_destino.insert(0,distr_Lleg_1.get())
+        
+        remitente_cliente.insert(0,remitente_11.get())
+        destinatario_cliente.insert(0,destinatario11.get())
+        ruc_partida.insert(0,ruc_1.get())
+        ruc_destino.insert(0,ruc_2.get())
+        
+        transporte_detalle.insert(0,f'{transp_1.get()} {transp_2.get()} {transp_3.get()} {transp_4.get()} {transp_5.get()} {transp_6.get()} {transp_7.get()}' )
+        transporte_codigo.insert(0,f'{codigo_1.get()} {codigo_2.get()} {codigo_3.get()} {codigo_4.get()} {codigo_5.get()} {codigo_6.get()} {codigo_7.get()}')
+        transporte_cantidad.insert(0,f'{cantidad_1.get()} {cantidad_2.get()} {cantidad_3.get()} {cantidad_4.get()} {cantidad_5.get()} {cantidad_6.get()} {cantidad_7.get()}')
+        transporte_peso.insert(0,f'{peso_1.get()} {peso_2.get()} {peso_3.get()} {peso_4.get()} {peso_5.get()} {peso_6.get()} {peso_7.get()}')
+            
+        if placa_12.get()!='':
+            placa_real.insert(0,f'{placa_11.get()}/{placa_12.get()}')
+            unidad_marca_real.insert(0, f'{marca_unidad.get()}/{marca_carreta.get()}')
+            unidad_certificado_real.insert(0,f'{certif_1.get()}/{certif_2.get()}')
+            unidad_ejes.insert(0, f'{ejes_tc_1.get()}/{ejes_tc_2.get()}')
+        else:
+            placa_real.insert(0,placa_11.get())
+            unidad_marca_real.insert(0, marca_unidad.get())
+            unidad_certificado_real.insert(0,certif_1.get())
+            unidad_ejes.insert(0, ejes_tc_1.get())
+        
+        conductor_nombres.insert(0,conductor_11.get())
+        conductor_licencia.insert(0,lic_cond.get())
+      
+#---- BOTON EXPORTAR A EXCEL ----------
+
+    def exportar_excel():
+        
+        excel = pd.read_excel('BASE_DATOS_HC-TRANSPORTES.xlsx', sheet_name='DATE_BASE', index_col=0)
+               
+        excel = excel.append({
+                            'GUIA HC': correl_hc[0],
+                            'GUIA CLIENTE': correl_cliente[0],
+                            'ESTADO GUIA': validar[0],
+                            'TRANSPORTE': estado_transporte[0],
+                            'OBSERVACION': observacion_trasnporte[0],
+                            'PRECIO LISTA': precio_lista[0],
+                            
+                            'FECHA TRASLADO': fecha_partida[0],
+                            'FECHA EMISION': fecha_destino[0],
+                            'LUGAR PARTIDA': direcc_partida[0],
+                            'CONO PARTIDA': cono_partida[0],
+                            'DISTRITO PARTIDA': distrito_partida[0],
+                            'LUGAR DESTINO': direcc_destino[0],
+                            'CONO DESTINO': cono_destino[0],
+                            'DISTRITO DESTINO': distrito_destino[0],
+                            'REMITENTE': remitente_cliente[0],
+                            'RUC REMITENTE': ruc_partida[0],
+                            'DESTINATARIO': destinatario_cliente[0],
+                            'RUC DESTINATARIO': ruc_destino[0],
+                            
+                            'DETALLE': transporte_detalle[0],
+                            'CODIGO': transporte_codigo[0],
+                            'CANTIDAD': transporte_cantidad[0],
+                            'PESO TN': transporte_peso[0],
+                        
+                            'PLACA': placa_real[0],
+                            'MARCA': unidad_marca_real[0],
+                            'CERTIFICADO': unidad_certificado_real[0],
+                            'EJES': unidad_ejes[0],
+                                    
+                            'CONDUCTOR': conductor_nombres[0],
+                            'LICENCIA': conductor_licencia[0]
+                            },
+            ignore_index=True)
+        
+        excel.to_excel('BASE_DATOS_HC-TRANSPORTES.xlsx', sheet_name='DATE_BASE')
+
+    
+    boton8=tk.Button(frame3, text='EXPORTAR A EXCEL', fg='white', bg='#0000CD', font = ("Arial", 10, 'bold'),
+                           width=18, command= lambda:[tomar_datos(), exportar_excel()])
+    boton8.place(x=1040,y=360)
+    
+#------ BOTON IMPRIMIR O GENERAR PDF ------------------------- 
+
+    def exportar_PDF():
+    
+        texto_pdf= canvas.Canvas("impresion.pdf", pagesize=A4)
+        texto_pdf.setFont('Helvetica', 12)
+        #DATOS DE LA GUIA TRANSPORTISTA DE HC
+        texto_pdf.drawString(430,397, guia_cliente_1.get())
+        texto_pdf.drawString(130,715, fecha_1.get())
+        texto_pdf.drawString(270,715, fecha_2.get())
+        texto_pdf.setFont("Helvetica", 10)
+        texto_pdf.drawString(170,695, f'{partida_11.get()} - {distrito_Salida_1.get()}')
+        texto_pdf.drawString(170,675, f'{llegada_11.get()} - {distr_Lleg_1.get()}')
+        
+        texto_pdf.drawString(170,660, remitente_11.get())
+        texto_pdf.drawString(460,660, ruc_1.get())
+        texto_pdf.drawString(170,640, destinatario11.get())
+        texto_pdf.drawString(460,640, ruc_2.get())
+        
+        texto_pdf.drawString(60,587, transp_1.get())
+        texto_pdf.drawString(60,570, transp_2.get())
+        texto_pdf.drawString(60,554, transp_3.get())
+        texto_pdf.drawString(60,535, transp_4.get())
+        texto_pdf.drawString(60,516, transp_5.get())
+        texto_pdf.drawString(60,497, transp_6.get())
+        texto_pdf.drawString(60,480, transp_7.get())
+        
+        texto_pdf.drawString(475,587, cantidad_1.get())
+        texto_pdf.drawString(475,570, cantidad_2.get())
+        texto_pdf.drawString(475,554, cantidad_3.get())
+        texto_pdf.drawString(475,535, cantidad_4.get())
+        texto_pdf.drawString(475,516, cantidad_5.get())
+        texto_pdf.drawString(475,497, cantidad_6.get())
+        texto_pdf.drawString(475,480, cantidad_7.get())
+        
+        texto_pdf.drawString(530,587, peso_1.get())
+        texto_pdf.drawString(530,570, peso_2.get())
+        texto_pdf.drawString(530,554, peso_3.get())
+        texto_pdf.drawString(530,535, peso_4.get())
+        texto_pdf.drawString(530,516, peso_5.get())
+        texto_pdf.drawString(530,497, peso_6.get())
+        texto_pdf.drawString(530,480, peso_7.get())
+    
+        if placa_12.get()!='':
+            texto_pdf.setFont("Helvetica", 7.5)
+            texto_pdf.drawString(50,445, f'{marca_unidad.get()} / {marca_carreta.get()}')
+            texto_pdf.setFont("Helvetica", 8)
+            texto_pdf.drawString(140,445, f'{placa_11.get()}/{placa_12.get()}')
+            texto_pdf.setFont("Helvetica", 9)
+            texto_pdf.drawString(210,447, f'{certif_1.get()}')
+            texto_pdf.setFont("Helvetica", 9)
+            texto_pdf.drawString(210,440, f'{certif_2.get()}')
+            texto_pdf.setFont("Helvetica", 10) 
+            texto_pdf.drawString(160,420, f'{ejes_tc_1.get()} {ejes_tc_2.get()}')
+        else:
+            
+            texto_pdf.drawString(50,445, marca_unidad.get())
+            texto_pdf.drawString(140,445, placa_11.get())
+            texto_pdf.drawString(210,442, certif_1.get())
+            texto_pdf.drawString(160,420, ejes_tc_1.get())
+            
+        texto_pdf.setFont("Helvetica", 10)   
+        texto_pdf.drawString(128,395, conductor_11.get())
+        texto_pdf.drawString(270,442, lic_cond.get())
+        
+        texto_pdf.save()
+          
+    boton9=tk.Button(frame3, text='EXPORTAR PDF',fg='white' ,bg='#0000CD',font = ("Arial", 10, 'bold'),
+                           width=18,command= lambda:[exportar_PDF()])
+    boton9.place(x=1040,y=410)   
+    
+    #BOTON LIMPIEZA GENERAL DE DATOS
+    def limpieza_general():
+        #CORRELATIVO        
+        guia_hc1.delete(0,'end')
+        guia_cliente_1.delete(0,'end')
+        estado_guia1.delete(0,'end')
+        tipo_transporte_1.delete(0,'end')
+        observacion_1.delete(0,'end')
+        precio_1.delete(0,'end')
+        #DIRECCIONES
+        partida_11.delete(0,'end')
+        llegada_11.delete(0,'end') 
+        
+        tipo_cono1.delete(0,'end')
+        
+        tipo_cono2.delete(0,'end')
+        
+        distrito_Salida_1.delete(0,'end')
+        distrito_Salida_1['values']=('')
+        
+        distr_Lleg_1.delete(0,'end')
+        distr_Lleg_1['values']=('')
+       
+        #REMITENTE Y DESTINATARIO
+        remitente_11.delete(0,'end')
+        ruc_1.delete(0,'end')
+        destinatario11.delete(0,'end')
+        ruc_2.delete(0,'end')
+        #SERVICIO DE TRANSPORTE
+        transp_1.delete(0,'end')
+        transp_2.delete(0,'end')
+        transp_3.delete(0,'end')
+        transp_4.delete(0,'end')
+        transp_5.delete(0,'end')
+        transp_6.delete(0,'end')
+        transp_7.delete(0,'end')
+        
+        codigo_1.delete(0,'end')
+        codigo_2.delete(0,'end')
+        codigo_3.delete(0,'end')
+        codigo_4.delete(0,'end')
+        codigo_5.delete(0,'end')
+        codigo_6.delete(0,'end')
+        codigo_7.delete(0,'end')
+        
+        cantidad_1.delete(0,'end')
+        cantidad_2.delete(0,'end')
+        cantidad_3.delete(0,'end')
+        cantidad_4.delete(0,'end')
+        cantidad_5.delete(0,'end')
+        cantidad_6.delete(0,'end')
+        cantidad_7.delete(0,'end')
+        
+        peso_1.delete(0,'end')
+        peso_2.delete(0,'end')
+        peso_3.delete(0,'end')
+        peso_4.delete(0,'end')
+        peso_5.delete(0,'end')
+        peso_6.delete(0,'end')
+        peso_7.delete(0,'end')
+        
+        #VEHÍCULO Y CONDUCTOR       
+    def desabilitar_botones():
+        boton5["fg"]="white"
+        boton5["bg"]="#000080"
+        
+        boton6["fg"]="white"
+        boton6["bg"]="#000080"
+        
+        placa_11.delete(0,'end')
+        placa_12.delete(0,'end')
+        
+        placa_11['values']=('')
+        placa_12['values']=('')
+        #CONDUCTOR
+        conductor_11.delete(0,'end')
+        
+    def limpieza_datos_boton():        
+        #MARCA
+        marca_unidad.delete(0,'end')
+        marca_carreta.delete(0,'end')
+        #CERTIFICADO
+        certif_1.delete(0,'end')
+        certif_2.delete(0,'end')
+        #EJES
+        ejes_tc_1.delete(0,'end')
+        ejes_tc_2.delete(0,'end')
+        #LICENCIA
+        lic_cond.delete(0,'end')
+          
+          
+    boton10=tk.Button(frame3, text='LIMPIAR',fg='white' ,bg='#0000CD',font = ("Arial", 10, 'bold'),
+                           width=18,command= lambda:[limpieza_general(), desabilitar_botones(),limpieza_datos_boton()])
+    boton10.place(x=1040,y=500)     
+    
+    #BOTON DE UBICACIÓN BASE - PARTIDA
+    
+    def direccion_partida_base():
+        partida_11.delete(0,'end')
+        partida_11.insert(tk.END, hc_place[0])
+        
+        tipo_cono1.delete(0,'end')
+        tipo_cono1.insert(tk.END, 'CENTRO')
+       
+        distrito_Salida_1.delete(0,'end')
+        distrito_Salida_1.insert(tk.END, zonaCentro[0])
+        
+    base_titulo=tk.Label(frame1, text='Presione si el transporte:',
+                  fg='white', bg='#000080', font=('Arial', 10,'italic')).place(x=690,y=130)
+    base_boton=tk.Label(frame1, text='Parte de la base',
+                  fg='white', bg='#000080', font=('Arial', 10,'italic')).place(x=690,y=148)
+    
+    boton12=tk.Button(frame1, text='BASE',fg='white' ,bg='#0000CD',font = ("Arial", 10, 'bold'),
+                           width=10, command=direccion_partida_base)
+    boton12.place(x=700,y=175)     
+
+    #BOTON DE UBICACIÓN BASE - DESTINO
+
+    def direccion_destino_base():
+        llegada_11.delete(0,'end')
+        llegada_11.insert(tk.END, hc_place[0])
+        
+        tipo_cono2.delete(0,'end')
+        tipo_cono2.insert(tk.END, 'CENTRO')
+       
+        distr_Lleg_1.delete(0,'end')
+        distr_Lleg_1.insert(tk.END, zonaCentro[0])
+        
+    base_boton=tk.Label(frame1, text='Llega a la base',
+                  fg='white', bg='#000080', font=('Arial', 10,'italic')).place(x=800,y=148)
+    boton12=tk.Button(frame1, text='BASE',fg='white' ,bg='#0000CD',font = ("Arial", 10, 'bold'),
+                           width=10, command=direccion_destino_base)
+    boton12.place(x=800,y=175)                   
+    
+    #BOTON CERRAR
+    def cerrar_pantalla():
+            panta.destroy()
+    
+    boton11=tk.Button(frame3, text='CERRAR',fg='white' ,bg='#0000CD',font = ("Arial", 10, 'bold'),
+                           width=18,command=cerrar_pantalla)
+    boton11.place(x=1040,y=600)    
+    
+    
+    panta.mainloop()
+    
+Pantalla()
+
+
